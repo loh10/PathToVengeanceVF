@@ -15,6 +15,7 @@ class APathToVengeanceCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	
 	APathToVengeanceCharacter();
 	void BeginPlay();
 
@@ -26,11 +27,19 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	void Attack();
-
-	void BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void StopAttack();
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackCooldown = 2.0f;
+	bool bIsAttacking = false;
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TArray<AActor*> EnemiArray;
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	                    int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
-    UBoxComponent* BoxComponent;
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* BoxCollision;
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* TopDownCameraComponent;
@@ -39,5 +48,5 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	FTimerHandle MyTimerHandle;
 };
-

@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "Public/EnemiTest.h"
 
 APathToVengeanceCharacter::APathToVengeanceCharacter()
 {
@@ -43,6 +44,11 @@ APathToVengeanceCharacter::APathToVengeanceCharacter()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	//Set up Collider
+	BoxCollision = CreateDefaultSubobject<UBoxComponent>(FName("BoxCollision"));
+	BoxCollision->SetupAttachment(RootComponent);
+	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APathToVengeanceCharacter::OnBeginOverlap);
 }
 
 void APathToVengeanceCharacter::BeginPlay()
@@ -52,16 +58,48 @@ void APathToVengeanceCharacter::BeginPlay()
 
 void APathToVengeanceCharacter::Tick(float DeltaSeconds)
 {
-    Super::Tick(DeltaSeconds);
+	Super::Tick(DeltaSeconds);
 }
 
 void APathToVengeanceCharacter::Attack()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, ("At least the F key press works! Now let's spawn an actor."));
+	if (bIsAttacking == false)
+	{
+		bIsAttacking = true;
+		for (AActor* Enemi : EnemiArray)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, (Enemi->GetName()));
+			if(Enemi != nullptr)
+			{
+				AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(Enemi);
+				if(EnemiCharacter != nullptr)
+				{
+					EnemiCharacter->Life -= 1;
+					if(EnemiCharacter->Life <= 0)
+					{
+						EnemiCharacter->Die();
+					}
+				}
+			}
+		}
+		GetWorldTimerManager().SetTimer(MyTimerHandle, this, &APathToVengeanceCharacter::StopAttack, AttackCooldown,
+		                                false);
+	}
 }
 
-void APathToVengeanceCharacter::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APathToVengeanceCharacter::StopAttack()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, ("Overlap detected!"));
+	bIsAttacking = false;
+	GetWorldTimerManager().ClearTimer(MyTimerHandle);
 }
+
+
+
+void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,const FHitResult& SweepResult)
+{
+	if(!EnemiArray.Contains(OtherActor))
+	{
+		EnemiArray.Add(OtherActor);
+	}
+}
+

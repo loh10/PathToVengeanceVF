@@ -61,7 +61,15 @@ void APathToVengeancePlayerController::SetupInputComponent()
 
 void APathToVengeancePlayerController::OnAttackCompleted()
 {
-	//APathToVengeancePlayerController::GetCharacter()->A
+	APawn* ControlledPawn = APathToVengeancePlayerController::GetPawn();
+	if(ControlledPawn != nullptr)
+	{
+		APathToVengeanceCharacter* PlayerControlled = Cast<APathToVengeanceCharacter>(ControlledPawn);
+		if(PlayerControlled != nullptr)
+		{
+			PlayerControlled->Attack();
+		}
+	}
 }
 
 void APathToVengeancePlayerController::OnInputStarted()
