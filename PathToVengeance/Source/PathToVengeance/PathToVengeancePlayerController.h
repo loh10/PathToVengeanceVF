@@ -47,6 +47,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
 
+	/** Interact  Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -61,12 +65,12 @@ protected:
 	void OnSetDestinationTriggered();
 	void OnSetDestinationReleased();
 	void OnGamepadMovement(const FInputActionValue& Value);
-	void OnAttackCompleted();
+	void OnAttack();
+	void OnInterract();
 	
 
 private:
 	FVector CachedDestination;
-	bool isAttacking;
 	bool bIsTouch; // Is it a touch device
 	float FollowTime; // For how long it has been pressed
 };

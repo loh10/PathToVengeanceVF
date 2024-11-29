@@ -19,7 +19,6 @@ APathToVengeancePlayerController::APathToVengeancePlayerController()
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
-	isAttacking = false;
 	FollowTime = 0.f;
 }
 
@@ -51,7 +50,9 @@ void APathToVengeancePlayerController::SetupInputComponent()
 		// Setup gamepad input events
 		EnhancedInputComponent->BindAction(GamepadMovementAction, ETriggerEvent::Triggered, this, &APathToVengeancePlayerController::OnGamepadMovement);
 		//Attack
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &APathToVengeancePlayerController::OnAttackCompleted);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &APathToVengeancePlayerController::OnAttack);
+		//Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &APathToVengeancePlayerController::OnInterract);
 	}
 	else
 	{
@@ -59,15 +60,29 @@ void APathToVengeancePlayerController::SetupInputComponent()
 	}
 }
 
-void APathToVengeancePlayerController::OnAttackCompleted()
+void APathToVengeancePlayerController::OnAttack()
 {
-	APawn* ControlledPawn = APathToVengeancePlayerController::GetPawn();
+	APawn* ControlledPawn = GetPawn();
 	if(ControlledPawn != nullptr)
 	{
 		APathToVengeanceCharacter* PlayerControlled = Cast<APathToVengeanceCharacter>(ControlledPawn);
 		if(PlayerControlled != nullptr)
 		{
 			PlayerControlled->Attack();
+		}
+	}
+}
+
+void APathToVengeancePlayerController::OnInterract()
+{
+	APawn* ControlledPawn = GetPawn();
+
+	if(ControlledPawn != nullptr)
+	{
+		APathToVengeanceCharacter* PlayerControlled = Cast<APathToVengeanceCharacter>(ControlledPawn);
+		if(PlayerControlled != nullptr)
+		{
+			PlayerControlled->Interract();
 		}
 	}
 }
@@ -125,10 +140,16 @@ void APathToVengeancePlayerController::OnSetDestinationReleased()
 
 void APathToVengeancePlayerController::OnGamepadMovement(const FInputActionValue& Value)
 {
+	
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	APawn* ControlledPawn = GetPawn();
 	if (ControlledPawn != nullptr)
 	{
+		if(CachedDestination != FVector::ZeroVector)
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, ControlledPawn->GetActorLocation());
+			CachedDestination = FVector::ZeroVector;
+		}
 		FVector WorldDirection = FVector(MovementVector.X, MovementVector.Y, 0.f).GetSafeNormal();
 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
 	}

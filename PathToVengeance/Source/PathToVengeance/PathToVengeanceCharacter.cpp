@@ -48,7 +48,9 @@ APathToVengeanceCharacter::APathToVengeanceCharacter()
 	//Set up Collider
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(FName("BoxCollision"));
 	BoxCollision->SetupAttachment(RootComponent);
-	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APathToVengeanceCharacter::OnBeginOverlap);
+	BoxCollision ->OnComponentBeginOverlap.AddDynamic(this, &APathToVengeanceCharacter::OnBeginOverlap);
+	ACharacter::GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(
+		this, &APathToVengeanceCharacter::OnBeginOverlap);
 }
 
 void APathToVengeanceCharacter::BeginPlay()
@@ -63,22 +65,19 @@ void APathToVengeanceCharacter::Tick(float DeltaSeconds)
 
 void APathToVengeanceCharacter::Attack()
 {
-	if (bIsAttacking == false)
+	TArray<AActor*> EnnemiArrayTemp =EnemiArray;
+	if (bIsAttacking == false && EnnemiArrayTemp.Num()>0)
 	{
 		bIsAttacking = true;
-		for (AActor* Enemi : EnemiArray)
+		for (AActor* Enemi : EnnemiArrayTemp)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, (Enemi->GetName()));
-			if(Enemi != nullptr)
+			AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(Enemi);
+			if (EnemiCharacter != nullptr)
 			{
-				AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(Enemi);
-				if(EnemiCharacter != nullptr)
+				EnemiCharacter->Life -= 1;
+				if (EnemiCharacter->Life <= 0)
 				{
-					EnemiCharacter->Life -= 1;
-					if(EnemiCharacter->Life <= 0)
-					{
-						EnemiCharacter->Die();
-					}
+					EnemiCharacter->Die();
 				}
 			}
 		}
@@ -87,19 +86,41 @@ void APathToVengeanceCharacter::Attack()
 	}
 }
 
+
 void APathToVengeanceCharacter::StopAttack()
 {
 	bIsAttacking = false;
 	GetWorldTimerManager().ClearTimer(MyTimerHandle);
 }
 
-
-
-void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,const FHitResult& SweepResult)
+void APathToVengeanceCharacter::Interract()
 {
-	if(!EnemiArray.Contains(OtherActor))
+	if (NearWeapon != nullptr)
 	{
-		EnemiArray.Add(OtherActor);
+		CurrentWeapon = NearWeapon;
+		OnNewWeapon();
 	}
 }
 
+
+void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                               const FHitResult& SweepResult)
+{
+	AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(OtherActor);
+	if (EnemiCharacter != nullptr)
+	{
+		if (!EnemiArray.Contains(EnemiCharacter))
+		{
+			EnemiArray.Add(EnemiCharacter);
+		}
+	}
+	AWeapon* Weapon = Cast<AWeapon>(OtherActor);
+	if(Weapon != nullptr)
+	{
+		if (Weapon->IsA(SwordBlueprintClass))
+		{
+			NearWeapon = Weapon;
+		} 
+	}
+}
