@@ -108,6 +108,7 @@ void AWeapon::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 				if (PlayerControlled->NearWeapon != nullptr && PlayerControlled->NearWeapon == this)
 				{
 					PlayerControlled->NearWeapon = nullptr;
+					PlayerControlled->bIsNearWeapon = false;
 				}
 			}
 		}

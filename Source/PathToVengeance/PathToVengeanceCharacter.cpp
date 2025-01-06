@@ -130,8 +130,8 @@ void APathToVengeanceCharacter::Interract()
 
 
 void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                               const FHitResult& SweepResult)
+											   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+											   const FHitResult& SweepResult)
 {
 	AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(OtherActor);
 	if (EnemiCharacter != nullptr)
@@ -147,6 +147,7 @@ void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedCo
 		if (Weapon->IsA(SwordBlueprintClass))
 		{
 			NearWeapon = Weapon;
+			bIsNearWeapon = true; 
 			CheckWeapon();
 		}
 	}

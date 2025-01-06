@@ -45,7 +45,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack")
 	AWeapon* CurrentWeapon;
-
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Attack")
+	bool bIsNearWeapon;
 	// Create Event
 	UFUNCTION(BlueprintImplementableEvent, Category = "Attack")
 	void OnNewWeapon();
