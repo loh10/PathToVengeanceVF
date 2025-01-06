@@ -19,6 +19,7 @@ class APathToVengeanceCharacter : public ACharacter
 
 public:
 	APathToVengeanceCharacter();
+	void SetSpeed(float Speed);
 	void BeginPlay();
 
 	// Called every frame.
@@ -31,8 +32,6 @@ public:
 	void Attack();
 	void StopAttack();
 	void Interract();
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	float AttackCooldown = 2.0f;
 	bool bIsAttacking = false;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
@@ -41,18 +40,22 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<ASword> SwordBlueprintClass;
 
-	UPROPERTY(VisibleAnywhere, Category = "Attack")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack")
 	AWeapon* NearWeapon;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Attack")
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack")
 	AWeapon* CurrentWeapon;
 
 	// Create Event
 	UFUNCTION(BlueprintImplementableEvent, Category = "Attack")
 	void OnNewWeapon();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Attack")
+	void CheckWeapon();
+
 	UPROPERTY()
 	bool bInterract;
-	
+
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	                    int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -70,4 +73,35 @@ private:
 	class USpringArmComponent* CameraBoom;
 
 	FTimerHandle MyTimerHandle;
+
+
+#pragma region Stat
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int Damage = 10;
+	int BaseDamage = 10;
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int Life = 15;
+	int BaseLife = 15;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int Speed = 300;
+	int BaseSpeed = 300;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	float AttackSpeed = .33f;
+	float BaseAttackSpeed = .33f;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int distAttack = 400;
+	int BasedistAttack = 400;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int CriticalHit = 20;
+	int BaseCriticalHit = 20;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Stat")
+	int Energy = 5;
+	int BaseEnergy = 5;
+
+#pragma endregion
 };

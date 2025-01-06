@@ -3,7 +3,6 @@
 #include "PathToVengeanceCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Camera/CameraComponent.h"
-#include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -15,7 +14,7 @@
 APathToVengeanceCharacter::APathToVengeanceCharacter()
 {
 	// Set size for player capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(42.f, 100.0f);
 
 	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
@@ -48,9 +47,15 @@ APathToVengeanceCharacter::APathToVengeanceCharacter()
 	//Set up Collider
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(FName("BoxCollision"));
 	BoxCollision->SetupAttachment(RootComponent);
-	BoxCollision ->OnComponentBeginOverlap.AddDynamic(this, &APathToVengeanceCharacter::OnBeginOverlap);
+	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APathToVengeanceCharacter::OnBeginOverlap);
 	ACharacter::GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(
 		this, &APathToVengeanceCharacter::OnBeginOverlap);
+	SetSpeed(Speed);
+}
+
+void APathToVengeanceCharacter::SetSpeed(float speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = speed;
 }
 
 void APathToVengeanceCharacter::BeginPlay()
@@ -65,8 +70,12 @@ void APathToVengeanceCharacter::Tick(float DeltaSeconds)
 
 void APathToVengeanceCharacter::Attack()
 {
-	TArray<AActor*> EnnemiArrayTemp =EnemiArray;
-	if (bIsAttacking == false && EnnemiArrayTemp.Num()>0)
+	if(FMath::RandRange(0, 100) <= CriticalHit)
+	{
+		Damage *= 2;
+	}
+	TArray<AActor*> EnnemiArrayTemp = EnemiArray;
+	if (bIsAttacking == false && EnnemiArrayTemp.Num() > 0)
 	{
 		bIsAttacking = true;
 		for (AActor* Enemi : EnnemiArrayTemp)
@@ -74,14 +83,14 @@ void APathToVengeanceCharacter::Attack()
 			AEnemiTest* EnemiCharacter = Cast<AEnemiTest>(Enemi);
 			if (EnemiCharacter != nullptr)
 			{
-				EnemiCharacter->Life -= 1;
+				EnemiCharacter->Life -= Damage;
 				if (EnemiCharacter->Life <= 0)
 				{
 					EnemiCharacter->Die();
 				}
 			}
 		}
-		GetWorldTimerManager().SetTimer(MyTimerHandle, this, &APathToVengeanceCharacter::StopAttack, AttackCooldown,
+		GetWorldTimerManager().SetTimer(MyTimerHandle, this, &APathToVengeanceCharacter::StopAttack, AttackSpeed,
 		                                false);
 	}
 }
@@ -95,10 +104,27 @@ void APathToVengeanceCharacter::StopAttack()
 
 void APathToVengeanceCharacter::Interract()
 {
-	if (NearWeapon != nullptr)
+	if (NearWeapon != nullptr) //Weapons
 	{
 		CurrentWeapon = NearWeapon;
 		OnNewWeapon();
+		int value = CurrentWeapon->StatToChange;
+		int percent = CurrentWeapon->PercentValue;
+		switch (value)
+		{
+		case 0:
+			Damage = BaseDamage + percent;
+			break;
+		case 1:
+			Life = BaseLife + percent;
+			break;
+		case 2:
+			AttackSpeed = BaseAttackSpeed - (percent/100);
+			break;
+		case 3:
+			CriticalHit = BaseCriticalHit + percent;
+			break;
+		}
 	}
 }
 
@@ -116,11 +142,12 @@ void APathToVengeanceCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 	}
 	AWeapon* Weapon = Cast<AWeapon>(OtherActor);
-	if(Weapon != nullptr)
+	if (Weapon != nullptr)
 	{
 		if (Weapon->IsA(SwordBlueprintClass))
 		{
 			NearWeapon = Weapon;
-		} 
+			CheckWeapon();
+		}
 	}
 }
